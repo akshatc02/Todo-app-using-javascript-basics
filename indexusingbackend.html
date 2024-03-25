@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Todo App</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+        }
+        .container {
+            max-width: 600px;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        input[type="text"] {
+            width: calc(100% - 20px);
+            padding: 10px;
+            margin-bottom: 10px;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+        }
+        button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            background-color: #007bff;
+            color: #fff;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .todo-item {
+            margin-bottom: 10px;
+            padding: 10px;
+            border-radius: 4px;
+            background-color: #f9f9f9;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .todo-item span {
+            flex: 1;
+        }
+        .delete-btn {
+            background-color: #dc3545;
+        }
+        .delete-btn:hover {
+            background-color: #c82333;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Todo App</h1>
+        <label for="title">Todo title</label>
+        <input type="text" id="title">
+        <label for="description">Todo description</label>
+        <input type="text" id="description">
+        <button onclick="onPress()">Add Todo</button>
+        <button onclick="getdata()">Get Todos</button>
+        <div id="mainArea"></div>
+    </div>
+
+    <script>
+        // Your JavaScript code here
+        
+    // Function to handle adding a new todo
+    // Function to handle adding a new todo
+function onPress() {
+    var title = document.getElementById("title").value;
+    var description = document.getElementById("description").value;
+
+    // Check if title or description is empty
+    if (!title || !description) {
+        alert("Please enter both title and description.");
+        return;
+    }
+
+    fetch("http://localhost:3001/todos", {
+        method: "POST",
+        body: JSON.stringify({
+            title: title,
+            description: description
+        }),
+        headers: {
+            "Content-Type": "application/json"
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        console.log("Todo added:", data);
+        // Clear input fields after adding todo
+        document.getElementById("title").value = "";
+        document.getElementById("description").value = "";
+        // Update todo list
+        getdata();
+    })
+    .catch(error => console.error("Error adding todo:", error));
+}
+
+
+    // Function to handle deleting a todo
+    function deletetodo(id) {
+        fetch("http://localhost:3001/todos/" + id, {
+            method: "DELETE",
+            headers: {
+                "Content-Type": "application/json"
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            console.log("Todo deleted:", data);
+            // Update todo list after deletion
+            getdata();
+        })
+        .catch(error => console.error("Error deleting todo:", error));
+    }
+
+    // Function to display todos
+    function tododata(data) {
+        var parentelement = document.getElementById("mainArea");
+        parentelement.innerHTML = ""; // Clear previous todo items
+        for (var i = 0; i < data.length; i++) {
+            var childelement = document.createElement("div");
+            childelement.className = "todo-item";
+            var grandchildelement1 = document.createElement("span");
+            grandchildelement1.innerHTML = data[i].title;
+            var grandchildelement2 = document.createElement("span");
+            grandchildelement2.innerHTML = data[i].description;
+            var grandchildelement3 = document.createElement("button");
+            grandchildelement3.innerHTML = "Delete";
+            grandchildelement3.className = "delete-btn";
+            grandchildelement3.setAttribute("onclick", "deletetodo(" + data[i].id + ")");
+            childelement.append(grandchildelement1);
+            childelement.append(grandchildelement2);
+            childelement.append(grandchildelement3);
+            parentelement.appendChild(childelement);
+        }
+    }
+
+    // Function to fetch todos from the server
+    function getdata() {
+        fetch("http://localhost:3001/todos", { method: "GET" })
+        .then(response => response.json())
+        .then(tododata)
+        .catch(error => console.error("Error fetching todos:", error));
+    }
+
+    // Initial fetch to load todos when the page loads
+    getdata();
+
+
+    </script>
+</body>
+</html>
+
